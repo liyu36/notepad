@@ -23,6 +23,7 @@ server_id=21
 socket=/var/run/mysql/mysql.sock
 [mysql]
 socket=/var/run/mysql/mysql.sock
+prompt=(\\u@\\h) [\\d]>\\
 ``` 
 ### 安装
 #### 1. 解压安装包至安装目录
