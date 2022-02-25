@@ -1,0 +1,88 @@
+## Ubuntu18.04 安装 MySQL8.0.26
+> 软件包可以在华为开源镜像站下载
+
+### 准备环境
+#### 1. 创建目录
+``` bash
+mkdir -pv /{apps,data}/mysql
+mkdir /var/run/mysql
+```
+#### 2. 创建用户
+``` bash
+useradd -m -d /home/mysql -s /bin/bash mysql
+chown -R mysql.mysql /var/run/mysql
+```
+### 3. 编写配置文件
+```ini
+[mysqld]
+user=mysql
+port=3306
+basedir=/apps/mysql
+datadir=/data/mysql
+server_id=21
+socket=/var/run/mysql/mysql.sock
+[mysql]
+socket=/var/run/mysql/mysql.sock
+``` 
+### 安装
+#### 1. 解压安装包至安装目录
+``` bash
+tar -xf mysql-8.0.26-linux-glibc2.12-x86_64.tar.xz  --strip-components 1  -C /apps/mysql/
+ln -s /apps/mysql/bin/* /usr/bin
+```
+
+#### 2. 初始化实例
+```bash
+mysqld --initialize-insecure --datadir=/data/mysql --basedir=/apps/mysql --user=mysql 
+```
+
+#### 3. 编写启动文件
+``` ini
+# /lib/systemd/system/mysqld.service
+[Unit]
+Description=MySQL Server
+Documentation=man:mysqld(8)
+Documentation=http://dev.mysql.com/doc/refman/en/using-systemd.html
+After=network.target
+After=syslog.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+User=mysql
+Group=mysql
+TimeoutSec=0
+ExecStart=/apps/mysql/bin/mysqld --defaults-file=/etc/mysql/my.cnf $MYSQLD_OPTS
+EnvironmentFile=-/etc/sysconfig/mysql
+LimitNOFILE = 10000
+Restart=on-failure
+RestartPreventExitStatus=1
+Environment=MYSQLD_PARENT_PID=1
+PrivateTmp=false
+```
+
+
+#### 4. 启动实例并设置开机自启
+``` bash
+systemctl enable --now mysqld
+```
+
+### 初始化
+
+#### 1. 修改管理员密码
+``` sql
+ALTER USER root@'localhost' IDENTIFIED BY "Password";
+```
+
+#### 2. 创建远程登录账号
+``` sql
+CREATE USER root@'%' IDENTIFIED WITH mysql_native_password BY 'password';
+GRANT ALL ON *.* TO root@'%';
+FLUSH PRIVILEGES;
+```
+
+#### 3. 测试远程登录
+``` bash
+mysql -uroot -p -h<PublicNet>
+```
