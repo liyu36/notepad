@@ -62,3 +62,8 @@ SHOW VARIABLES LIKE 'character%';
 -- 查看校对规则
 SHOW VARIABLES LIKE 'collation\_%';
 ```
+
+### 3. 查看可用的字符集和校对规则
+``` sql
+SHOW CHARACTER set;
+```
